@@ -78,17 +78,11 @@ powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\plugins\windows-compu
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
 
-## Publish Notes
+## Repository
 
-Before publishing to GitHub, update these fields in `.codex-plugin/plugin.json`:
+GitHub repository:
 
-- `author.name`
-- `author.email`
-- `author.url`
-- `homepage`
-- `repository`
-- `interface.developerName`
-- `interface.websiteURL`
+- [twh66666/windows-computer-use](https://github.com/twh66666/windows-computer-use)
 
 ## Safety
 
