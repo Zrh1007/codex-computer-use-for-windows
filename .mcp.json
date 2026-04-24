@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "windows-computer-use": {
+      "command": "C:\\Windows\\System32\\cmd.exe",
+      "args": [
+        "/d",
+        "/c",
+        "__PLUGIN_ROOT__\\scripts\\run_windows_computer_use_mcp.cmd"
+      ]
+    }
+  }
+}
