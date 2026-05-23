@@ -101,5 +101,5 @@ if (-not $NoConfigUpdate) {
 Write-Host ""
 Write-Host "Install complete."
 Write-Host "1. Restart Codex Desktop."
-Write-Host "2. Open the plugin picker and confirm Windows Computer Use is enabled."
+Write-Host "2. Open the plugin picker and confirm Computer Use is enabled."
 Write-Host "3. If needed, run scripts\\repair_and_test.ps1 from the installed plugin folder."

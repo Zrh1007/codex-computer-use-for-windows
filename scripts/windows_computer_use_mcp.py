@@ -15,11 +15,14 @@ from ctypes import wintypes
 from pathlib import Path
 from typing import Any
 
+from windows_use_backend import WindowsUseBackend
 
 PROTOCOL_VERSION = "2024-11-05"
-SERVER_NAME = "windows-computer-use"
-SERVER_VERSION = "0.1.3"
+SERVER_NAME = "computer-use"
+SERVER_VERSION = "0.2.0"
 OUTPUT_FRAMED = False
+BACKEND_NAME = "CursorTouch/Windows-Use"
+backend = WindowsUseBackend()
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -257,36 +260,39 @@ $bmp.Dispose()
 def tool_move_mouse(args: dict[str, Any]) -> dict[str, Any]:
     x = int(args["x"])
     y = int(args["y"])
-    if not user32.SetCursorPos(x, y):
-        raise ctypes.WinError(ctypes.get_last_error())
+    backend.move_to(
+        x,
+        y,
+        move_speed=float(args.get("speed", 10)),
+        duration=args.get("duration"),
+        steps=args.get("steps"),
+        wait_time=float(args.get("wait_time", 0.05)),
+    )
     _sleep(args.get("delay"))
-    return text_result(f"Moved cursor to ({x}, {y}).")
+    return text_result(f"Smoothly moved cursor to ({x}, {y}) using {BACKEND_NAME}.")
 
 
 def tool_click(args: dict[str, Any]) -> dict[str, Any]:
     x = args.get("x")
     y = args.get("y")
     if x is not None and y is not None:
-        if not user32.SetCursorPos(int(x), int(y)):
-            raise ctypes.WinError(ctypes.get_last_error())
+        backend.move_to(
+            int(x),
+            int(y),
+            move_speed=float(args.get("speed", 10)),
+            duration=args.get("duration"),
+            steps=args.get("steps"),
+            wait_time=float(args.get("wait_time", 0.02)),
+        )
     button = str(args.get("button", "left")).lower()
     clicks = int(args.get("clicks", 1))
     interval = float(args.get("interval", 0.08))
-    flags = {
-        "left": (MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP),
-        "right": (MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP),
-        "middle": (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
-    }.get(button)
-    if flags is None:
-        raise ValueError("button must be left, right, or middle")
-    for _ in range(clicks):
-        user32.mouse_event(flags[0], 0, 0, 0, 0)
-        time.sleep(0.03)
-        user32.mouse_event(flags[1], 0, 0, 0, 0)
-        time.sleep(interval)
+    backend.click(button=button, clicks=clicks, interval=interval)
     _sleep(args.get("delay"))
     point = cursor_point()
-    return text_result(f"Clicked {button} {clicks} time(s) at ({point.x}, {point.y}).")
+    return text_result(
+        f"Clicked {button} {clicks} time(s) at ({point.x}, {point.y}) using {BACKEND_NAME}."
+    )
 
 
 def tool_scroll(args: dict[str, Any]) -> dict[str, Any]:
@@ -294,10 +300,17 @@ def tool_scroll(args: dict[str, Any]) -> dict[str, Any]:
     x = args.get("x")
     y = args.get("y")
     if x is not None and y is not None:
-        user32.SetCursorPos(int(x), int(y))
-    user32.mouse_event(MOUSEEVENTF_WHEEL, 0, 0, amount * 120, 0)
+        backend.move_to(
+            int(x),
+            int(y),
+            move_speed=float(args.get("speed", 10)),
+            duration=args.get("duration"),
+            steps=args.get("steps"),
+            wait_time=float(args.get("wait_time", 0.02)),
+        )
+    backend.scroll(amount)
     _sleep(args.get("delay"))
-    return text_result(f"Scrolled {amount} wheel notch(es).")
+    return text_result(f"Scrolled {amount} wheel notch(es) using {BACKEND_NAME}.")
 
 
 def tool_press_key(args: dict[str, Any]) -> dict[str, Any]:
@@ -333,9 +346,8 @@ def tool_type_text(args: dict[str, Any]) -> dict[str, Any]:
 
 
 def cursor_point() -> POINT:
-    point = POINT()
-    if not user32.GetCursorPos(ctypes.byref(point)):
-        raise ctypes.WinError(ctypes.get_last_error())
+    x, y = backend.get_cursor_pos()
+    point = POINT(x=x, y=y)
     return point
 
 
@@ -386,12 +398,30 @@ TOOLS = {
         "handler": tool_screenshot,
     },
     "move_mouse": {
-        "description": "Move the mouse cursor to absolute screen coordinates.",
+        "description": "Smoothly move the mouse cursor to absolute screen coordinates.",
         "inputSchema": {
             "type": "object",
             "properties": {
                 "x": {"type": "integer"},
                 "y": {"type": "integer"},
+                "speed": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Windows-Use style movement speed. Higher is faster.",
+                },
+                "duration": {
+                    "type": "number",
+                    "description": "Optional exact movement duration in seconds.",
+                },
+                "steps": {
+                    "type": "integer",
+                    "description": "Optional number of interpolation steps for the move.",
+                },
+                "wait_time": {
+                    "type": "number",
+                    "default": 0.05,
+                    "description": "Pause after movement in seconds.",
+                },
                 "delay": {"type": "number"},
             },
             "required": ["x", "y"],
@@ -408,6 +438,10 @@ TOOLS = {
                 "button": {"type": "string", "enum": ["left", "right", "middle"], "default": "left"},
                 "clicks": {"type": "integer", "default": 1},
                 "interval": {"type": "number", "default": 0.08},
+                "speed": {"type": "number", "default": 10},
+                "duration": {"type": "number"},
+                "steps": {"type": "integer"},
+                "wait_time": {"type": "number", "default": 0.02},
                 "delay": {"type": "number"},
             },
         },
@@ -421,6 +455,10 @@ TOOLS = {
                 "amount": {"type": "integer", "default": -3},
                 "x": {"type": "integer"},
                 "y": {"type": "integer"},
+                "speed": {"type": "number", "default": 10},
+                "duration": {"type": "number"},
+                "steps": {"type": "integer"},
+                "wait_time": {"type": "number", "default": 0.02},
                 "delay": {"type": "number"},
             },
         },

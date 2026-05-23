@@ -1,32 +1,36 @@
 {
   "name": "windows-computer-use",
-  "version": "0.1.3",
-  "description": "Portable Windows desktop control tools for Codex via MCP.",
+  "version": "0.2.0",
+  "description": "Portable Computer Use tools for Codex via MCP, backed by Windows-Use style Windows control.",
   "author": {
-    "name": "twh66666",
+    "name": "Zrh1007",
     "email": "twh66666@users.noreply.github.com",
-    "url": "https://github.com/twh66666/windows-computer-use"
+    "url": "https://github.com/Zrh1007"
   },
-  "homepage": "https://github.com/twh66666/windows-computer-use",
-  "repository": "https://github.com/twh66666/windows-computer-use",
+  "homepage": "https://github.com/Zrh1007/codex-computer-use-for-windows",
+  "repository": "https://github.com/Zrh1007/codex-computer-use-for-windows",
   "license": "MIT",
   "keywords": ["windows", "computer-use", "desktop", "mcp"],
+  "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Windows Computer Use",
+    "displayName": "Computer Use",
     "shortDescription": "Control the local Windows desktop from Codex.",
-    "longDescription": "Provides local MCP tools for screenshots, mouse actions, keyboard input, scrolling, cursor position, and visible window discovery on Windows.",
-    "developerName": "twh66666",
+    "longDescription": "Provides local MCP tools for screenshots, smooth mouse movement, mouse actions, keyboard input, scrolling, cursor position, and visible window discovery on Windows. Mouse control is backed by CursorTouch/Windows-Use style behavior.",
+    "developerName": "Zrh1007",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write", "Desktop Control"],
-    "websiteURL": "https://github.com/twh66666/windows-computer-use",
-    "privacyPolicyURL": "https://github.com/twh66666/windows-computer-use",
-    "termsOfServiceURL": "https://github.com/twh66666/windows-computer-use",
+    "websiteURL": "https://github.com/Zrh1007/codex-computer-use-for-windows",
+    "privacyPolicyURL": "https://github.com/Zrh1007/codex-computer-use-for-windows",
+    "termsOfServiceURL": "https://github.com/Zrh1007/codex-computer-use-for-windows",
     "defaultPrompt": [
       "Take a screenshot of my desktop.",
       "Click a point on the screen.",
       "List visible Windows app windows."
     ],
-    "brandColor": "#2563EB"
+    "brandColor": "#22D3EE",
+    "composerIcon": "./assets/computer-use.png",
+    "logo": "./assets/computer-use.png",
+    "screenshots": []
   }
 }
