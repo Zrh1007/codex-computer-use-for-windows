@@ -1,0 +1,13 @@
+interface:
+  display_name: "Computer Use"
+  short_description: "Control the Windows desktop"
+  icon_small: "./assets/computer-use-small.svg"
+  icon_large: "./assets/computer-use-small.svg"
+  brand_color: "#22D3EE"
+  default_prompt: "Use $windows-computer-use to inspect or control my Windows desktop."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "windows-computer-use"
+      description: "Local Windows desktop control MCP server"

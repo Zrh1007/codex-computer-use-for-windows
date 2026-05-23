@@ -9,6 +9,7 @@ $PluginRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $SourceMcp = Join-Path $PluginRoot ".mcp.json"
 $Launcher = Join-Path $PluginRoot "scripts\run_windows_computer_use_mcp.cmd"
 $Server = Join-Path $PluginRoot "scripts\windows_computer_use_mcp.py"
+$EnsureVenv = Join-Path $PluginRoot "scripts\ensure_venv.ps1"
 $PluginManifest = Get-Content -LiteralPath (Join-Path $PluginRoot ".codex-plugin\plugin.json") -Raw | ConvertFrom-Json
 $CacheRoot = Join-Path $env:USERPROFILE ".codex\plugins\cache\$MarketplaceName\windows-computer-use\$($PluginManifest.version)"
 
@@ -18,9 +19,17 @@ if (!(Test-Path $Launcher)) {
 if (!(Test-Path $Server)) {
   throw "Missing MCP server: $Server"
 }
+if (!(Test-Path $EnsureVenv)) {
+  throw "Missing venv helper: $EnsureVenv"
+}
 
-python -m json.tool $SourceMcp | Out-Null
-python -m py_compile $Server
+$VenvPython = powershell -NoProfile -ExecutionPolicy Bypass -File $EnsureVenv
+if (!(Test-Path $VenvPython)) {
+  throw "Virtual environment was not created: $VenvPython"
+}
+
+& $VenvPython -m json.tool $SourceMcp | Out-Null
+& $VenvPython -m py_compile $Server
 
 $probe = @'
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
@@ -37,7 +46,15 @@ if (($output -join "`n") -notmatch '"serverInfo"' -or ($output -join "`n") -notm
 
 if (!$NoCacheSync) {
   New-Item -ItemType Directory -Force -Path $CacheRoot | Out-Null
-  Copy-Item -Recurse -Force -Path (Join-Path $PluginRoot "*") -Destination $CacheRoot
+  Get-ChildItem -LiteralPath $PluginRoot -Force | Where-Object {
+    $_.Name -ne ".venv"
+  } | ForEach-Object {
+    $destination = Join-Path $CacheRoot $_.Name
+    if ($_.PSIsContainer -and (Test-Path $destination)) {
+      Remove-Item -LiteralPath $destination -Recurse -Force
+    }
+    Copy-Item -LiteralPath $_.FullName -Destination $destination -Recurse -Force
+  }
   Get-ChildItem -LiteralPath $CacheRoot -Recurse -Force | Where-Object {
     $_.Name -eq "__pycache__" -or $_.Extension -eq ".pyc"
   } | Remove-Item -Recurse -Force

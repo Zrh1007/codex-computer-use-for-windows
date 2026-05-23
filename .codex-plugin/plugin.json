@@ -1,6 +1,6 @@
 {
   "name": "windows-computer-use",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Portable Computer Use tools for Codex via MCP, backed by Windows-Use style Windows control.",
   "author": {
     "name": "Zrh1007",

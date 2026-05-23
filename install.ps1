@@ -25,10 +25,13 @@ if ($normalizedTarget.StartsWith($normalizedSource, [System.StringComparison]::O
 New-Item -ItemType Directory -Force -Path $TargetRoot | Out-Null
 
 Get-ChildItem -LiteralPath $SourceRoot -Force | Where-Object {
-  $_.Name -notin @(".git", ".github", "__pycache__", ".test-home", ".pack-tmp", "windows-computer-use-github.zip")
+  $_.Name -notin @(".git", ".github", "__pycache__", ".venv", ".test-home", ".pack-tmp", "windows-computer-use-github.zip")
 } | ForEach-Object {
   $destination = Join-Path $TargetRoot $_.Name
   if ($_.PSIsContainer) {
+    if (Test-Path $destination) {
+      Remove-Item -LiteralPath $destination -Recurse -Force
+    }
     Copy-Item -LiteralPath $_.FullName -Destination $destination -Recurse -Force
   } else {
     Copy-Item -LiteralPath $_.FullName -Destination $destination -Force
@@ -38,6 +41,11 @@ Get-ChildItem -LiteralPath $SourceRoot -Force | Where-Object {
 Get-ChildItem -LiteralPath $TargetRoot -Recurse -Force | Where-Object {
   $_.Name -eq "__pycache__" -or $_.Extension -eq ".pyc"
 } | Remove-Item -Recurse -Force
+
+$EnsureVenv = Join-Path $TargetRoot "scripts\ensure_venv.ps1"
+if (Test-Path $EnsureVenv) {
+  powershell -NoProfile -ExecutionPolicy Bypass -File $EnsureVenv | Out-Null
+}
 
 $McpPath = Join-Path $TargetRoot ".mcp.json"
 $mcp = Get-Content -LiteralPath $McpPath -Raw

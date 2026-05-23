@@ -1,3 +1,4 @@
 scripts/__pycache__/
 *.pyc
+.venv/
 windows-computer-use-github.zip

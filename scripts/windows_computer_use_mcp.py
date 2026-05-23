@@ -19,7 +19,7 @@ from windows_use_backend import WindowsUseBackend
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "computer-use"
-SERVER_VERSION = "0.2.0"
+SERVER_VERSION = "0.2.1"
 OUTPUT_FRAMED = False
 BACKEND_NAME = "CursorTouch/Windows-Use"
 backend = WindowsUseBackend()
